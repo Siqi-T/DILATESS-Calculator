@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DILATEd Cardiomyopathy Survival Score</title>
+
+  <style>
+    :root{
+      /* --- Clinical palette (cool, restrained) --- */
+      --bg:#F6F8FB;
+      --card:#FFFFFF;
+      --ink:#0F172A;        /* slate-900 */
+      --muted:#64748B;      /* slate-500 */
+      --muted2:#94A3B8;     /* slate-400 */
+      --line:#E3E8EF;
+
+      --primary:#1F4E79;    /* deep medical blue */
+      --primary2:#3A7CA5;   /* secondary blue */
+      --danger:#B23A48;     /* controlled clinical red */
+
+      --chip:#EDF4FA;
+      --chipText:#1F4E79;
+
+      --focus:rgba(31,78,121,0.18);
+
+      /* Interaction highlight (soft blue, not orange) */
+      --hi:#E8F1FB;
+      --hiBorder:#3A7CA5;
+
+      /* Risk tier colors (subtle) */
+      --tierLowBg:#ECFDF5;    --tierLowFg:#065F46;   /* green-ish */
+      --tierIntBg:#EFF6FF;    --tierIntFg:#1D4ED8;   /* blue-ish */
+      --tierHighBg:#FFF7ED;   --tierHighFg:#9A3412;  /* orange-ish */
+      --tierVhBg:#FEF2F2;     --tierVhFg:#991B1B;    /* red-ish */
+    }
+
+    *{box-sizing:border-box;}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink);
+      margin:24px auto;
+      padding:0 12px;
+      background:var(--bg);
+      max-width:1180px;
+    }
+
+    /* --- Header --- */
+    .topbar{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px 18px 14px;
+      box-shadow:0 8px 20px rgba(15, 23, 42, 0.04);
+      margin-bottom:16px;
+    }
+    h1{margin:0 0 6px; font-size:22px; line-height:1.25; font-weight:650;}
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      margin:0;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      font-size:12px;
+      color:var(--chipText);
+      background:var(--chip);
+      font-weight:650;
+      white-space:nowrap;
+    }
+    .noteTop{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+      padding:10px 12px;
+      background:rgba(237,244,250,0.7);
+      border:1px solid var(--line);
+      border-radius:14px;
+      margin-top:12px;
+    }
+
+    /* --- Grid: 60/40 + sticky Results --- */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.35fr 0.9fr; /* ~60/40 */
+      gap:16px;
+      align-items:start;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      background:var(--card);
+      box-shadow:0 8px 20px rgba(15, 23, 42, 0.04);
+    }
+    .card h2{
+      margin:0 0 12px;
+      font-size:15px;
+      color:var(--ink);
+      font-weight:700;
+      letter-spacing:0.2px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .sticky{
+      position:sticky;
+      top:16px;
+    }
+
+    /* --- Sections / rhythm --- */
+    .section{
+      border-top:1px solid var(--line);
+      padding-top:14px;
+      margin-top:14px;
+    }
+    .section:first-of-type{
+      border-top:0;
+      padding-top:0;
+      margin-top:0;
+    }
+    .sectionHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .sectionTitle{
+      font-size:13px;
+      font-weight:750;
+      color:var(--ink);
+      margin:0;
+    }
+
+    /* --- Form --- */
+    label{
+      display:block;
+      font-weight:700;
+      margin:0;
+      font-size:13px;
+      color:var(--ink);
+    }
+    input, select{
+      width:100%;
+      padding:10px 10px;
+      margin-top:7px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      font-family:inherit;
+      font-size:14px;
+      background:#fff;
+    }
+    input:focus, select:focus{
+      outline:none;
+      border-color:rgba(31,78,121,0.55);
+      box-shadow:0 0 0 4px var(--focus);
+    }
+
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+    .row.tight{margin-bottom:0;}
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr;}
+      .sticky{position:static;}
+      body{margin:16px auto;}
+    }
+
+    .fieldTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    /* Softer points badge */
+    .pts{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      font-weight:750;
+      padding:4px 10px;
+      border-radius:999px;
+      background:var(--chip);
+      border:1px solid var(--line);
+      color:var(--chipText);
+      white-space:nowrap;
+    }
+    .pts b{font-weight:800;}
+
+    /* Units toggle */
+    .toggleWrap{display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap;}
+    .mutedInline{color:var(--muted); font-size:12px;}
+    .toggle{
+      display:inline-flex;
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow:0 1px 0 rgba(15,23,42,0.02);
+    }
+    .toggle button{
+      border:0;
+      background:transparent;
+      padding:7px 10px;
+      font-weight:750;
+      cursor:pointer;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .toggle button.active{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    /* --- Interaction table (lighter, less heavy) --- */
+    .matrixWrap{margin-top:8px;}
+    table.matrix{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+      margin-top:10px;
+      background:#fff;
+    }
+    .matrix th, .matrix td{
+      border-bottom:1px solid var(--line);
+      border-right:1px solid var(--line);
+      padding:10px 8px;
+      text-align:center;
+      font-size:13px;
+    }
+    .matrix th{
+      background:#F1F5F9;
+      font-weight:800;
+      color:#0B1220;
+    }
+    .matrix tr:nth-child(even) td{background:#FCFDFE;}
+    .matrix tr:last-child td{border-bottom:0;}
+    .matrix tr td:last-child, .matrix tr th:last-child{border-right:0;}
+    .matrix .rowhead{
+      background:#fff;
+      font-weight:800;
+      text-align:left;
+      color:#0B1220;
+    }
+    .matrix .corner{background:#F1F5F9; font-weight:800; text-align:left; color:#0B1220;}
+    .matrix td.here{
+      background:var(--hi);
+      box-shadow: inset 0 0 0 2px var(--hiBorder);
+      font-weight:900;
+    }
+
+    /* --- Buttons --- */
+    .btn{
+      margin-top:16px;
+      padding:12px 14px;
+      border:0;
+      border-radius:14px;
+      cursor:pointer;
+      background:var(--primary);
+      color:#fff;
+      font-weight:850;
+      width:100%;
+      box-shadow:0 8px 16px rgba(31,78,121,0.18);
+    }
+    .btn:hover{filter:brightness(0.96);}
+    .btn:active{transform:translateY(1px);}
+
+    .btnSecondary{
+      background:#fff;
+      color:var(--primary);
+      border:1px solid var(--line);
+      box-shadow:none;
+      font-weight:850;
+      margin-top:12px;
+    }
+
+    /* --- Results (premium hierarchy) --- */
+    .scoreBlock{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .scoreLabel{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:750;
+      letter-spacing:0.25px;
+      text-transform:uppercase;
+    }
+    .scoreValue{
+      font-size:38px;
+      font-weight:850;
+      color:var(--primary);
+      line-height:1;
+      margin-top:4px;
+    }
+    .modelBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:850;
+      border:1px solid var(--line);
+      background:var(--chip);
+      color:var(--primary);
+      white-space:nowrap;
+    }
+    .hr{height:1px; background:var(--line); margin:14px 0;}
+
+    .tierPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:850;
+      border:1px solid var(--line);
+      white-space:nowrap;
+    }
+    .tier-low{background:var(--tierLowBg); color:var(--tierLowFg);}
+    .tier-int{background:var(--tierIntBg); color:var(--tierIntFg);}
+    .tier-high{background:var(--tierHighBg); color:var(--tierHighFg);}
+    .tier-vh{background:var(--tierVhBg); color:var(--tierVhFg);}
+
+    .kvs{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px 12px;
+      margin-top:10px;
+      font-size:14px;
+      align-items:center;
+    }
+    .k{color:var(--muted);}
+
+    /* Mortality rows with tiny bars */
+    .valWrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:flex-end;
+      min-width:160px;
+    }
+    .bar{
+      width:88px;
+      height:8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#F1F5F9;
+      overflow:hidden;
+    }
+    .bar > span{
+      display:block;
+      height:100%;
+      width:0%;
+      background:var(--primary2);
+    }
+
+    .right{text-align:right;}
+    .small{font-size:12px; color:var(--muted); margin-top:8px;}
+    .warn{
+      margin-top:14px;
+      padding:12px 12px;
+      border-radius:14px;
+      background:rgba(237,244,250,0.7);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .hidden{display:none;}
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <h1>DILATEd Cardiomyopathy Survival Score</h1>
+    <p class="sub">
+      Integer score calculator for dilated cardiomyopathy all-cause mortality prediction at 1–3 years.
+      <span class="pill">Single-file, no backend</span>
+    </p>
+    <div class="noteTop">
+      The prediction model was developed in the DEMAND study (Deep phenotypic Multimodality-based Analysis of Dilated Cardiomyopathy),
+      a prospective Chinese DCM cohort at West China Hospital, Sichuan University.
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="card">
+      <h2>
+        <span>Inputs</span>
+        <span class="pill">Auto-updates</span>
+      </h2>
+
+      <div class="section">
+        <div class="sectionHead">
+          <p class="sectionTitle">Core predictors</p>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="fieldTop">
+              <label for="age">Age (years)</label>
+              <span class="pts" id="p_age">Points: <b>—</b></span>
+            </div>
+            <input id="age" type="number" min="0" step="1" value="50" />
+          </div>
+
+          <div>
+            <div class="fieldTop">
+              <label for="hct">Hematocrit (%)</label>
+              <span class="pts" id="p_hct">Points: <b>—</b></span>
+            </div>
+            <input id="hct" type="number" min="0" step="0.1" value="40" />
+          </div>
+        </div>
+
+        <!-- SBP + NT-proBNP -->
+        <div class="row tight" style="margin-top:14px;">
+          <div>
+            <div class="fieldTop">
+              <label for="sbp">SBP (mmHg)</label>
+              <span class="pts" id="p_sbp">Bin: <b>—</b></span>
+            </div>
+            <input id="sbp" type="number" min="0" step="1" value="120" />
+          </div>
+
+          <div>
+            <div class="fieldTop">
+              <label for="bnp">NT-proBNP <span id="bnpUnitLabel">(pg/mL)</span></label>
+              <span class="pts" id="p_bnp">Bin: <b>—</b></span>
+            </div>
+            <input id="bnp" type="number" min="0" step="1" value="3000" />
+            <div class="toggleWrap">
+              <span class="mutedInline">Units:</span>
+              <div class="toggle" role="group" aria-label="NT-proBNP units toggle">
+                <button type="button" id="unit_pg" class="active">pg/mL</button>
+                <button type="button" id="unit_ng">ng/L</button>
+              </div>
+              <span class="mutedInline">Same numeric values.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interaction matrix -->
+        <div class="matrixWrap">
+          <div class="fieldTop" style="margin-top:14px;">
+            <label style="margin:0;">Interaction: SBP × NT-proBNP</label>
+            <span class="pts" id="p_int">Points: <b>—</b></span>
+          </div>
+
+          <table class="matrix" aria-label="SBP by NT-proBNP interaction matrix">
+            <thead>
+              <tr>
+                <th class="corner">NT-proBNP</th>
+                <th colspan="4">SBP (mmHg)</th>
+              </tr>
+              <tr>
+                <th class="corner"></th>
+                <th>≤100</th>
+                <th>101–120</th>
+                <th>121–140</th>
+                <th>&gt;140</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="rowhead">≤1800</td>
+                <td id="cell_0_0">1</td><td id="cell_0_1">0</td><td id="cell_0_2">0</td><td id="cell_0_3">0</td>
+              </tr>
+              <tr>
+                <td class="rowhead">1800–4499</td>
+                <td id="cell_1_0">3</td><td id="cell_1_1">2</td><td id="cell_1_2">1</td><td id="cell_1_3">0</td>
+              </tr>
+              <tr>
+                <td class="rowhead">4500–11999</td>
+                <td id="cell_2_0">5</td><td id="cell_2_1">4</td><td id="cell_2_2">2</td><td id="cell_2_3">1</td>
+              </tr>
+              <tr>
+                <td class="rowhead">≥12000</td>
+                <td id="cell_3_0">6</td><td id="cell_3_1">5</td><td id="cell_3_2">3</td><td id="cell_3_3">2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="row" style="margin-top:14px;">
+          <div>
+            <div class="fieldTop">
+              <label for="lvedvi">LVEDVi (mL/m²)</label>
+              <span class="pts" id="p_lvedvi">Points: <b>—</b></span>
+            </div>
+            <input id="lvedvi" type="number" min="0" step="1" value="200" />
+          </div>
+          <div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="sectionHead">
+          <p class="sectionTitle">Rhythm and medications</p>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="fieldTop">
+              <label for="af">Atrial flutter/fibrillation</label>
+              <span class="pts" id="p_af">Points: <b>—</b></span>
+            </div>
+            <select id="af">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="fieldTop">
+              <label for="bb_on">On beta-blocker</label>
+              <span class="pts" id="p_bb">Points: <b>—</b></span>
+            </div>
+            <select id="bb_on">
+              <option value="1">Yes</option>
+              <option value="0">No</option>
+            </select>
+            <div class="small">Scoring: +1 point if <b>not</b> on beta-blocker.</div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:14px;">
+          <div>
+            <div class="fieldTop">
+              <label for="dig">On digoxin</label>
+              <span class="pts" id="p_dig">Points: <b>—</b></span>
+            </div>
+            <select id="dig">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="fieldTop">
+              <label for="lge">LGE</label>
+              <span class="pts" id="p_lge">Points: <b>—</b></span>
+            </div>
+            <select id="lge">
+              <option value="na">Not available</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+            <div class="small">If LGE is “Not available”, the calculator uses DILATESS (Table 3). If “No/Yes”, it uses DILATESS-LGE (Table 5).</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" id="calc">Calculate</button>
+
+      <div class="warn">
+        <b>Disclaimer:</b> This calculator is for research/clinical decision support and does not replace clinical judgment.
+        Ensure inputs are consistent with the model definition used in your manuscript.
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="card sticky">
+      <h2>
+        <span>Results</span>
+        <span class="pill" id="modelPill">Model: —</span>
+      </h2>
+
+      <div class="scoreBlock">
+        <div>
+          <div class="scoreLabel">Total score</div>
+          <div class="scoreValue" id="score">—</div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-end;">
+          <div class="modelBadge" id="modelBadge">—</div>
+          <div class="tierPill hidden" id="tierPill">—</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="kvs">
+        <div class="k">Predicted mortality (1 year)</div>
+        <div class="valWrap">
+          <div class="bar"><span id="bar1"></span></div>
+          <b id="r1">—</b>
+        </div>
+
+        <div class="k">Predicted mortality (2 years)</div>
+        <div class="valWrap">
+          <div class="bar"><span id="bar2"></span></div>
+          <b id="r2">—</b>
+        </div>
+
+        <div class="k">Predicted mortality (3 years)</div>
+        <div class="valWrap">
+          <div class="bar"><span id="bar3"></span></div>
+          <b id="r3">—</b>
+        </div>
+      </div>
+
+      <button class="btn btnSecondary" id="copyBtn">Copy summary</button>
+      <div class="small" id="copyStatus"></div>
+    </div>
+  </div>
+
+<script>
+/* --------------------------
+   1) Point assignment rules
+   -------------------------- */
+function pointsAge(age){
+  if (age <= 25) return 2;
+  if (age <= 35) return 1;
+  if (age <= 45) return 0;
+  if (age <= 55) return 1;
+  if (age <= 65) return 2;
+  if (age <= 75) return 3;
+  if (age <= 85) return 4;
+  return 5;
+}
+function pointsHct(hct){
+  if (hct <= 27) return 4;
+  if (hct <= 35) return 3;
+  if (hct <= 44) return 2;
+  if (hct <= 52) return 1;
+  return 0;
+}
+function pointsLVEDVi(v){
+  if (v <= 160) return 0;
+  if (v <= 200) return 1;
+  if (v <= 240) return 2;
+  if (v <= 280) return 3;
+  if (v <= 320) return 4;
+  return 5; // >320
+}
+function interactionBins(sbp, bnp){
+  const sbpBin = (sbp <= 100) ? 0 : (sbp <= 120) ? 1 : (sbp <= 140) ? 2 : 3;
+  const bnpRow = (bnp <= 1800) ? 0 : (bnp <= 4499) ? 1 : (bnp <= 11999) ? 2 : 3;
+  return {sbpBin, bnpRow};
+}
+function pointsInteraction(sbp, bnp){
+  const {sbpBin, bnpRow} = interactionBins(sbp, bnp);
+  const grid = [
+    [1,0,0,0],
+    [3,2,1,0],
+    [5,4,2,1],
+    [6,5,3,2]
+  ];
+  return grid[bnpRow][sbpBin];
+}
+// Binary predictors (+1 if NOT on beta-blocker)
+function pointsBinary(af, bbOn, dig, lgePresent){
+  let pts = 0;
+  if (af === 1) pts += 1;
+  if (bbOn === 0) pts += 1;
+  if (dig === 1) pts += 2;
+  if (lgePresent === 1) pts += 2;
+  return pts;
+}
+
+/* --------------------------
+   2) Risk lookup tables
+   -------------------------- */
+const riskDILATESS = {
+  1:  {y1:"<1.0%", y2:"1.5%", y3:"2.4%"},
+  2:  {y1:"<1.0%", y2:"2.1%", y3:"3.4%"},
+  3:  {y1:"1.4%",  y2:"2.9%", y3:"4.6%"},
+  4:  {y1:"1.9%",  y2:"3.9%", y3:"6.3%"},
+  5:  {y1:"2.6%",  y2:"5.4%", y3:"8.6%"},
+  6:  {y1:"3.5%",  y2:"7.4%", y3:"11.7%"},
+  7:  {y1:"4.8%",  y2:"10.0%",y3:"15.8%"},
+  8:  {y1:"6.6%",  y2:"13.6%",y3:"21.1%"},
+  9:  {y1:"9.0%",  y2:"18.2%",y3:"27.9%"},
+  10: {y1:"12.2%", y2:"24.3%",y3:"36.4%"},
+  11: {y1:"16.5%", y2:"31.9%",y3:"46.4%"},
+  12: {y1:"22.0%", y2:"41.2%",y3:"57.8%"},
+  13: {y1:"29.1%", y2:"51.9%",y3:"69.6%"},
+  14: {y1:"37.8%", y2:"63.7%",y3:"80.7%"},
+  15: {y1:"48.1%", y2:"75.3%",y3:"89.7%"},
+  16: {y1:"59.6%", y2:"85.5%",y3:"95.7%"},
+  17: {y1:"71.4%", y2:"93.0%",y3:"98.7%"}
+};
+function lookupDILATESS(score){
+  if (score >= 17) return riskDILATESS[17];
+  const s = Math.max(1, Math.min(16, score));
+  return riskDILATESS[s];
+}
+const riskDILATESS_LGE = {
+  1:  {y1:"<1.0%", y2:"1.2%", y3:"2.0%"},
+  2:  {y1:"<1.0%", y2:"1.6%", y3:"2.7%"},
+  3:  {y1:"1.0%",  y2:"2.2%", y3:"3.6%"},
+  4:  {y1:"1.4%",  y2:"3.0%", y3:"4.9%"},
+  5:  {y1:"1.9%",  y2:"4.1%", y3:"6.6%"},
+  6:  {y1:"2.6%",  y2:"5.5%", y3:"8.8%"},
+  7:  {y1:"3.5%",  y2:"7.3%", y3:"11.7%"},
+  8:  {y1:"4.7%",  y2:"9.8%", y3:"15.5%"},
+  9:  {y1:"6.3%",  y2:"13.0%",y3:"20.5%"},
+  10: {y1:"8.5%",  y2:"17.2%",y3:"26.7%"},
+  11: {y1:"11.3%", y2:"22.6%",y3:"34.3%"},
+  12: {y1:"15.0%", y2:"29.3%",y3:"43.3%"},
+  13: {y1:"19.7%", y2:"37.5%",y3:"53.7%"},
+  14: {y1:"25.8%", y2:"47.1%",y3:"64.8%"},
+  15: {y1:"33.2%", y2:"57.8%",y3:"75.7%"},
+  16: {y1:"42.1%", y2:"68.9%",y3:"85.3%"},
+  17: {y1:"52.3%", y2:"79.5%",y3:"92.6%"},
+  18: {y1:"63.4%", y2:"88.3%",y3:"97.0%"},
+  19: {y1:"74.3%", y2:"94.5%",y3:"99.2%"}
+};
+function lookupDILATESS_LGE(score){
+  if (score >= 19) return riskDILATESS_LGE[19];
+  const s = Math.max(1, Math.min(18, score));
+  return riskDILATESS_LGE[s];
+}
+
+/* --------------------------
+   3) Risk tier labels (NEW)
+   -------------------------- */
+function tierForDILATESS(score){
+  if (score >= 13) return {label:"VERY-HIGH RISK (≥13)", cls:"tier-vh"};
+  if (score >= 10) return {label:"HIGH RISK (10–12)", cls:"tier-high"};
+  if (score >= 6)  return {label:"INTERMEDIATE RISK (6–9)", cls:"tier-int"};
+  return {label:"LOW RISK (1–5)", cls:"tier-low"};
+}
+function tierForDILATESS_LGE(score){
+  if (score >= 14) return {label:"VERY-HIGH RISK (≥14)", cls:"tier-vh"};
+  if (score >= 11) return {label:"HIGH RISK (11–13)", cls:"tier-high"};
+  if (score >= 7)  return {label:"INTERMEDIATE RISK (7–10)", cls:"tier-int"};
+  return {label:"LOW RISK (1–6)", cls:"tier-low"};
+}
+
+/* --------------------------
+   4) UI behavior
+   -------------------------- */
+const el = (id) => document.getElementById(id);
+
+function setPts(id, val){
+  const e = el(id);
+  e.querySelector("b").textContent = val;
+}
+function sbpBinLabel(sbp){
+  if (sbp <= 100) return "≤100";
+  if (sbp <= 120) return "101–120";
+  if (sbp <= 140) return "121–140";
+  return ">140";
+}
+function bnpRowLabel(bnp){
+  if (bnp <= 1800) return "≤1800";
+  if (bnp <= 4499) return "1800–4499";
+  if (bnp <= 11999) return "4500–11999";
+  return "≥12000";
+}
+
+function clearMatrixHere(){
+  for (let r=0;r<4;r++){
+    for (let c=0;c<4;c++){
+      el(`cell_${r}_${c}`).classList.remove("here");
+    }
+  }
+}
+function markMatrixHere(sbp, bnp){
+  clearMatrixHere();
+  const {sbpBin, bnpRow} = interactionBins(sbp, bnp);
+  el(`cell_${bnpRow}_${sbpBin}`).classList.add("here");
+}
+
+/* Convert percent string like "10.0%" or "<1.0%" to number for bars */
+function pctToNumber(pctStr){
+  const s = String(pctStr).trim();
+  if (s.startsWith("<")){
+    const n = parseFloat(s.replace(/[^\d.]/g,""));
+    return isFinite(n) ? Math.max(0, n * 0.8) : 0; // approximate for "<x"
+  }
+  const n = parseFloat(s.replace(/[^\d.]/g,""));
+  return isFinite(n) ? n : 0;
+}
+/* Scale bar widths to max 100%, but cap visuals at 80% for readability */
+function setBars(r1, r2, r3){
+  const a = pctToNumber(r1), b = pctToNumber(r2), c = pctToNumber(r3);
+  const maxv = Math.max(a,b,c,1);
+  const w1 = Math.min(80, (a/maxv)*80);
+  const w2 = Math.min(80, (b/maxv)*80);
+  const w3 = Math.min(80, (c/maxv)*80);
+  el("bar1").style.width = w1 + "%";
+  el("bar2").style.width = w2 + "%";
+  el("bar3").style.width = w3 + "%";
+}
+
+function unitToggle(to){
+  const pg = el("unit_pg"), ng = el("unit_ng");
+  if (to === "pg"){
+    pg.classList.add("active"); ng.classList.remove("active");
+    el("bnpUnitLabel").textContent = "(pg/mL)";
+  } else {
+    ng.classList.add("active"); pg.classList.remove("active");
+    el("bnpUnitLabel").textContent = "(ng/L)";
+  }
+}
+el("unit_pg").addEventListener("click", () => unitToggle("pg"));
+el("unit_ng").addEventListener("click", () => unitToggle("ng"));
+
+function clampNonNeg(x){ return (isFinite(x) && x >= 0) ? x : NaN; }
+
+function calcAndRender(){
+  const age   = clampNonNeg(Number(el("age").value));
+  const hct   = clampNonNeg(Number(el("hct").value));
+  const sbp   = clampNonNeg(Number(el("sbp").value));
+  const bnp   = clampNonNeg(Number(el("bnp").value));
+  const lved  = clampNonNeg(Number(el("lvedvi").value));
+
+  const af    = Number(el("af").value);
+  const bbOn  = Number(el("bb_on").value);
+  const dig   = Number(el("dig").value);
+
+  const lgeVal = el("lge").value;      // "na" | "0" | "1"
+  const usingLGE = (lgeVal !== "na");
+  const lgePres = usingLGE ? Number(lgeVal) : 0;
+
+  const fieldsOK = [age,hct,sbp,bnp,lved].every(v => isFinite(v));
+  if (!fieldsOK){
+    el("score").textContent = "—";
+    el("r1").textContent = "—"; el("r2").textContent = "—"; el("r3").textContent = "—";
+    el("modelPill").textContent = "Model: —";
+    el("modelBadge").textContent = "—";
+    el("tierPill").classList.add("hidden");
+    setBars("0%","0%","0%");
+    return;
+  }
+
+  const pAge = pointsAge(age);
+  const pHct = pointsHct(hct);
+  const pLv  = pointsLVEDVi(lved);
+  const pInt = pointsInteraction(sbp, bnp);
+  const pBin = pointsBinary(af, bbOn, dig, lgePres);
+
+  setPts("p_age", pAge);
+  setPts("p_hct", pHct);
+  setPts("p_lvedvi", pLv);
+  setPts("p_af", af===1 ? 1 : 0);
+  setPts("p_bb", bbOn===0 ? 1 : 0);
+  setPts("p_dig", dig===1 ? 2 : 0);
+  setPts("p_lge", usingLGE ? (lgePres===1 ? 2 : 0) : 0);
+
+  setPts("p_sbp", sbpBinLabel(sbp));
+  setPts("p_bnp", bnpRowLabel(bnp));
+  setPts("p_int", pInt);
+
+  markMatrixHere(sbp, bnp);
+
+  const total = pAge + pHct + pLv + pInt + pBin;
+  const risk = usingLGE ? lookupDILATESS_LGE(total) : lookupDILATESS(total);
+
+  el("score").textContent = String(total);
+  el("r1").textContent = risk.y1;
+  el("r2").textContent = risk.y2;
+  el("r3").textContent = risk.y3;
+
+  /* Model badges */
+  const modelName = usingLGE ? "DILATESS-LGE" : "DILATESS";
+  el("modelPill").textContent = `Model: ${modelName}`;
+  el("modelBadge").textContent = modelName;
+
+  /* Risk tier pill (NEW) */
+  const tier = usingLGE ? tierForDILATESS_LGE(total) : tierForDILATESS(total);
+  const tp = el("tierPill");
+  tp.className = `tierPill ${tier.cls}`;   // reset + apply class
+  tp.textContent = tier.label;
+  tp.classList.remove("hidden");
+
+  /* Bars */
+  setBars(risk.y1, risk.y2, risk.y3);
+}
+
+el("calc").addEventListener("click", () => {
+  const age   = clampNonNeg(Number(el("age").value));
+  const hct   = clampNonNeg(Number(el("hct").value));
+  const sbp   = clampNonNeg(Number(el("sbp").value));
+  const bnp   = clampNonNeg(Number(el("bnp").value));
+  const lved  = clampNonNeg(Number(el("lvedvi").value));
+  const ok = [age,hct,sbp,bnp,lved].every(v => isFinite(v));
+  if (!ok){
+    alert("Please enter valid non-negative numbers for Age, Hematocrit, SBP, NT-proBNP, and LVEDVi.");
+    return;
+  }
+  calcAndRender();
+});
+
+["age","hct","sbp","bnp","lvedvi","af","bb_on","dig","lge"].forEach(id => {
+  el(id).addEventListener("input", calcAndRender);
+  el(id).addEventListener("change", calcAndRender);
+});
+
+el("copyBtn").addEventListener("click", async () => {
+  const s = el("score").textContent;
+  if (s === "—") { el("copyStatus").textContent = "Calculate first, then copy."; return; }
+
+  const modelName = el("modelBadge").textContent;
+  const tier = el("tierPill").textContent;
+
+  const text =
+    `${modelName} integer score = ${s}\n` +
+    `${tier}\n` +
+    `Predicted mortality: 1y ${el("r1").textContent}, 2y ${el("r2").textContent}, 3y ${el("r3").textContent}`;
+
+  try{
+    await navigator.clipboard.writeText(text);
+    el("copyStatus").textContent = "Copied.";
+    setTimeout(()=>{ el("copyStatus").textContent = ""; }, 1500);
+  }catch(e){
+    el("copyStatus").textContent = "Copy failed (browser permission).";
+  }
+});
+
+calcAndRender();
+</script>
+
+</body>
+</html>
