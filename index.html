@@ -248,8 +248,11 @@
     <div class="card sticky">
       <div class="analysis-header">
         <h2>Risk Analysis</h2>
-        <div class="model-tag" id="activeModel">Model: DILATESS</div>
-      </div>
+        <div class="model-tag" id="activeModel">
+    Model: DILATESS
+    <span id="scoreRange" style="font-size: 12px; color: var(--muted); margin-left: 10px;"></span>
+  </div>
+</div>
 
       <div class="score-hero">
         <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Total Mortality Score</div>
@@ -397,9 +400,12 @@ function calculate() {
   const results = modelData[clampedScore];
 
   // Update UI
-  document.getElementById('totalScore').innerText = score; // show raw score
-  document.getElementById('activeModel').innerText = isLGEModel ? "Model: DILATESS-LGE" : "Model: DILATESS";
+  // Update UI
+document.getElementById('totalScore').innerText = score; // show raw score
+document.getElementById('activeModel').innerText = isLGEModel ? "Model: DILATESS-LGE" : "Model: DILATESS";
 
+// Set score range dynamically
+document.getElementById('scoreRange').innerText = isLGEModel ? "Score Range: 0-19" : "Score Range: 0-17";
   const tier = getTier(score, isLGEModel);
   const tierBadge = document.getElementById('riskTier');
   tierBadge.innerText = tier.text;
