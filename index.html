@@ -1,10 +1,7 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>DILATEd Cardiomyopathy Survival Score (DILATESS) / DILATESS-LGE</title>
-
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DILATESS / DILATESS-LGE — Primary Model Calculator</title>
 <style>
   :root {
     --bg: #F8FAFC;
@@ -226,336 +223,181 @@
     margin-left: 6px;
   }
 
-</style>
-</head>
-<body>
 
+  [hidden] { display: none !important; }
+  .setup-note { padding: 14px 18px; margin-bottom: 24px; background: #FFFBEB;
+    border: 1px solid #FDE68A; border-radius: 12px; font-size: 13px; color: #92400E; }
+  .input-error { color: #991B1B; font-size: 13px; margin-bottom: 14px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .analysis-header h2 { margin-bottom: 0; border: 0; padding: 0; }
+  .bd-row { gap: 15px; } .bd-val { text-align: right; }
+  @media (max-width: 480px) {
+    body { padding: 15px 10px; } .card, .header-card { padding: 18px; }
+    h1 { font-size: 22px; } .row { gap: 12px; } .score-val { font-size: 52px; }
+    .model-tag { font-size: 10px; } .sticky { position: static; }
+  }
+</style></head><body>
 <div class="container">
   <div class="header-card">
-    <h1>DILATEd Cardiomyopathy Survival Score (DILATESS) / DILATESS-LGE</h1>
-    <div class="subtitle">
-      Integer score calculator for dilated cardiomyopathy all-cause mortality prediction (1–5 years).
-    </div>
-    <div class="study-line">
-      Developed in the DEMAND study (Deep phenotypic Multimodality-based Analysis of Dilated Cardiomyopathy), a prospective Chinese DCM cohort at West China Hospital, Sichuan University.
-    </div>
+    <h1>DILATEd Cardiomyopathy Survival Score</h1>
+    <div class="subtitle">DILATESS / DILATESS-LGE calculator for predicting 1–5-year all-cause mortality in dilated cardiomyopathy, with or without late gadolinium enhancement (LGE) information.</div>
+    <div class="study-line">Developed in the DEMAND study (Deep phenotypic Multimodality-based Analysis of Dilated Cardiomyopathy), a prospective Chinese DCM cohort at West China Hospital, Sichuan University.</div>
   </div>
-
+  <div id="setupNote" class="setup-note" role="status">Calculator setup incomplete: the fitted model values have not been embedded. Run Export_DILATESS_calculator.R with the two saved presentation bundles to create the ready-to-use calculator.</div>
   <div class="grid">
-    <div class="card">
-      <h2>Patient Predictors</h2>
-
+    <div class="card"><h2>Patient Predictors</h2>
+      
       <div class="section-label">Quantitative Variables</div>
       <div class="row">
-        <div>
-          <label for="age">Age (years)</label>
-          <input id="age" type="number" value="50">
-        </div>
-        <div>
-          <label for="hct">Hematocrit (%)</label>
-          <input id="hct" type="number" value="40">
-        </div>
+        <div><label for="age">Age (years)</label><input id="age" type="number" value="50" min="0" step="any"></div>
+        <div><label for="hct">Hematocrit (%)</label><input id="hct" type="number" value="40" min="1" max="100" step="any"><div class="help">Enter 40 for 0.40 L/L.</div></div>
       </div>
       <div class="row">
-        <div>
-          <label for="lvedvi">LVEDVi (mL/m²)</label>
-          <input id="lvedvi" type="number" value="200">
-        </div>
-        <div>
-          <label for="sbp">SBP (mmHg)</label>
-          <input id="sbp" type="number" value="120">
-        </div>
+        <div><label for="lvedd">LVEDD (mm)</label><input id="lvedd" type="number" value="60" min="0" step="any"><div class="help">Echocardiographic end-diastolic diameter.</div></div>
+        <div><label for="sbp">SBP (mmHg)</label><input id="sbp" type="number" value="120" min="0" step="any"></div>
       </div>
       <div class="row">
-        <div>
-          <label for="bnp">NT-proBNP (ng/L)</label>
-          <input id="bnp" type="number" value="3000">
-          <div class="help">Equivalent to pg/mL.</div>
-        </div>
+        <div><label for="bnp">NT-proBNP (ng/L)</label><input id="bnp" type="number" value="3000" min="0" step="any"><div class="help">Equivalent to pg/mL.</div></div>
+      </div>
+      <div class="section-label">Baseline Clinical &amp; Imaging Findings</div>
+      <div class="row">
+        <div><label for="af">Atrial Flutter/Fibrillation</label><select id="af"><option value="0">No</option><option value="1">Yes</option></select></div>
+        <div><label for="bb_on">Beta-blocker Use</label><select id="bb_on"><option value="1">Yes</option><option value="0">No</option></select></div>
+      </div>
+      <div class="row">
+        <div><label for="dig">Digitalis Use</label><select id="dig"><option value="0">No</option><option value="1">Yes</option></select></div>
+        <div><label for="lge">LGE Presence (CMR)</label><select id="lge"><option value="na">Not Available</option><option value="0">Absent</option><option value="1">Present</option></select></div>
       </div>
 
-      <div class="section-label">Categorical & Imaging Findings</div>
-      <div class="row">
-        <div>
-          <label for="af">Atrial Flutter/Fibrillation</label>
-          <select id="af">
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-          </select>
-        </div>
-        <div>
-          <label for="bb_on">Beta-blocker Therapy</label>
-          <select id="bb_on">
-            <option value="1">Yes</option>
-            <option value="0">No</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="dig">Digoxin Use</label>
-          <select id="dig">
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-          </select>
-        </div>
-        <div>
-          <label for="lge">LGE Presence (MRI)</label>
-          <select id="lge">
-            <option value="na">Not Available</option>
-            <option value="0">None</option>
-            <option value="1">Present</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="warning-box">
-        <b>Academic Use Only</b>
-        This tool is intended for research and educational purposes only. It is not a substitute for professional clinical judgment. Clinical decisions should not be based solely on this score.
-      </div>
+      <div class="warning-box"><b>Academic Use Only</b>This tool is intended for research and educational purposes only. It is not a substitute for professional clinical judgment. Clinical decisions should not be based solely on these estimates.</div>
     </div>
-
     <div class="card sticky">
-      <div class="analysis-header">
-        <h2>Risk Analysis</h2>
-        <div class="model-tag" id="activeModel">Model: DILATESS</div>
-      </div>
-
+      <div class="analysis-header"><h2>Risk Analysis</h2><div class="model-tag" id="activeModel">DILATESS</div></div>
+      <div id="inputError" class="input-error" role="alert" hidden></div>
       <div class="score-hero">
-        <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Total Mortality Score</div>
-        <div class="score-val" id="totalScore">6</div>
-        <div class="total-range" id="totalRange">(Range: 0–24)</div>
-        <div class="tier-badge" id="riskTier">Intermediate Risk</div>
-        
-<details class="score-breakdown">
-          <summary>View Score Breakdown</summary>
-          <div class="breakdown-content">
-            <div class="bd-row">
-              <span>Age <span class="bd-range">(Range: 0–5)</span></span> 
-              <span class="bd-val" id="bd_age">+0</span>
-            </div>
-            <div class="bd-row">
-              <span>Hematocrit <span class="bd-range">(Range: 0–4)</span></span> 
-              <span class="bd-val" id="bd_hct">+0</span>
-            </div>
-            <div class="bd-row">
-              <span>LVEDVi <span class="bd-range">(Range: 0–5)</span></span> 
-              <span class="bd-val" id="bd_lvedvi">+0</span>
-            </div>
-            <div class="bd-row">
-              <span>SBP + NT-proBNP Interaction <span class="bd-range">(Range: 0–6)</span></span> 
-              <span class="bd-val" id="bd_joint">+0</span>
-            </div>
-            <div class="bd-row">
-              <span>Atrial Fibrillation/Flutter <span class="bd-range">(Range: 0–1)</span></span> 
-              <span class="bd-val" id="bd_af">+0</span>
-            </div>
-            <div class="bd-row">
-              <span>No Beta-blocker <span class="bd-range">(Range: 0–1)</span></span> 
-              <span class="bd-val" id="bd_bb">+0</span>
-            </div>
-            <div class="bd-row">
-              <span>Digoxin Use <span class="bd-range">(Range: 0–2)</span></span> 
-              <span class="bd-val" id="bd_dig">+0</span>
-            </div>
-            <div class="bd-row" id="row_lge" style="display:none;">
-              <span>LGE Presence <span class="bd-range">(Range: 0–2)</span></span> 
-              <span class="bd-val" id="bd_lge">+0</span>
-            </div>
-          </div>
-        </details>
+        <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase">Predicted Five-Year Mortality</div>
+        <div class="score-val" id="fiveYearRisk" aria-live="polite">—</div>
+        <div class="total-range">Individual probability of all-cause mortality</div>
+        <div class="tier-badge" id="riskTier" hidden></div>
+        <details class="score-breakdown"><summary>View Patient Inputs</summary><div class="breakdown-content" id="patientSummary"></div></details>
       </div>
-
-      <div style="font-size: 12px; font-weight: 800; margin-bottom: 15px; color: var(--brand); text-transform: uppercase;">Predicted Mortality Rates</div>
-
-      <div id="mortalityResults">
-        <div class="m-row">
-          <div>1-Year Mortality <div class="m-bar-bg"><div id="bar1" class="m-bar-fill"></div></div></div>
-          <b id="y1">3.5%</b>
-        </div>
-        <div class="m-row">
-          <div>2-Year Mortality <div class="m-bar-bg"><div id="bar2" class="m-bar-fill"></div></div></div>
-          <b id="y2">7.4%</b>
-        </div>
-        <div class="m-row">
-          <div>3-Year Mortality <div class="m-bar-bg"><div id="bar3" class="m-bar-fill"></div></div></div>
-          <b id="y3">11.7%</b>
-        </div>
-        <div class="m-row">
-          <div>4-Year Mortality <div class="m-bar-bg"><div id="bar4" class="m-bar-fill"></div></div></div>
-          <b id="y4">15.2%</b>
-        </div>
-        <div class="m-row">
-          <div>5-Year Mortality <div class="m-bar-bg"><div id="bar5" class="m-bar-fill"></div></div></div>
-          <b id="y5">18.3%</b>
-        </div>
-      </div>
-
-      <div class="model-logic-note">
-        <strong>Model selection:</strong> If LGE is <em>Not available</em>, the calculator applies <strong>DILATESS</strong>. If LGE is <em>None</em> or <em>Present</em>, it applies <strong>DILATESS-LGE</strong>.
-      </div>
+      <div style="font-size:12px;font-weight:800;margin-bottom:15px;color:var(--brand);text-transform:uppercase">Predicted Mortality</div>
+      <div id="mortalityResults"><div class="m-row"><div>1-Year Mortality<div class="m-bar-bg"><div id="bar1" class="m-bar-fill"></div></div></div><b id="y1">—</b></div><div class="m-row"><div>2-Year Mortality<div class="m-bar-bg"><div id="bar2" class="m-bar-fill"></div></div></div><b id="y2">—</b></div><div class="m-row"><div>3-Year Mortality<div class="m-bar-bg"><div id="bar3" class="m-bar-fill"></div></div></div><b id="y3">—</b></div><div class="m-row"><div>4-Year Mortality<div class="m-bar-bg"><div id="bar4" class="m-bar-fill"></div></div></div><b id="y4">—</b></div><div class="m-row"><div>5-Year Mortality<div class="m-bar-bg"><div id="bar5" class="m-bar-fill"></div></div></div><b id="y5">—</b></div></div>
+      <div class="model-logic-note" id="modelNote">DILATESS is used when LGE status is unavailable. DILATESS-LGE is used when LGE is recorded as absent or present.</div>
+      <div class="help" style="margin-top:12px">Calculations run in your browser. Patient inputs are not uploaded or stored.</div>
     </div>
   </div>
 </div>
-
-<script>
-/* --- Calculation Logic --- */
-function pointsAge(a){
-  if(a<=25) return 2; if(a<=35) return 1; if(a<=45) return 0;
-  if(a<=55) return 1; if(a<=65) return 2; if(a<=75) return 3;
-  if(a<=85) return 4; return 5;
-}
-function pointsHct(h){
-  const f = h > 1 ? h/100 : h;
-  if(f<=0.27) return 4; if(f<=0.35) return 3; if(f<=0.44) return 2; if(f<=0.52) return 1; return 0;
-}
-function pointsLVEDVi(v){
-  if(v<=160) return 0; if(v<=200) return 1; if(v<=240) return 2; if(v<=280) return 3; if(v<=320) return 4; return 5;
-}
-function pointsInteraction(sbp, bnp){
-  const sBin = sbp<=100?0:sbp<=120?1:sbp<=140?2:3;
-  const bRow = bnp<=1800?0:bnp<=4499?1:bnp<=11999?2:3;
-  const grid = [[1,0,0,0],[3,2,1,0],[5,4,2,1],[6,5,3,2]];
-  return grid[bRow][sBin];
-}
-
-const riskDILATESS = {
-  1:{y1:"<1.0%",y2:"1.5%",y3:"2.4%",y4:"3.2%",y5:"3.9%"},
-  2:{y1:"<1.0%",y2:"2.1%",y3:"3.4%",y4:"4.4%",y5:"5.4%"},
-  3:{y1:"1.4%",y2:"2.9%",y3:"4.6%",y4:"6.1%",y5:"7.4%"},
-  4:{y1:"1.9%",y2:"3.9%",y3:"6.3%",y4:"8.3%",y5:"10.0%"},
-  5:{y1:"2.6%",y2:"5.4%",y3:"8.6%",y4:"11.2%",y5:"13.6%"},
-  6:{y1:"3.5%",y2:"7.4%",y3:"11.7%",y4:"15.2%",y5:"18.3%"},
-  7:{y1:"4.8%",y2:"10.0%",y3:"15.8%",y4:"20.3%",y5:"24.3%"},
-  8:{y1:"6.6%",y2:"13.6%",y3:"21.1%",y4:"26.9%",y5:"31.9%"},
-  9:{y1:"9.0%",y2:"18.2%",y3:"27.9%",y4:"35.2%",y5:"41.2%"},
-  10:{y1:"12.2%",y2:"24.3%",y3:"36.4%",y4:"45.1%",y5:"52.0%"},
-  11:{y1:"16.5%",y2:"31.9%",y3:"46.4%",y4:"56.3%",y5:"63.7%"},
-  12:{y1:"22.0%",y2:"41.2%",y3:"57.8%",y4:"68.1%",y5:"75.3%"},
-  13:{y1:"29.1%",y2:"51.9%",y3:"69.6%",y4:"79.3%",y5:"85.5%"},
-  14:{y1:"37.8%",y2:"63.7%",y3:"80.7%",y4:"88.7%",y5:"93.1%"},
-  15:{y1:"48.1%",y2:"75.3%",y3:"89.7%",y4:"95.1%",y5:"97.5%"},
-  16:{y1:"59.6%",y2:"85.5%",y3:"95.7%",y4:"98.4%",y5:"99.4%"},
-  17:{y1:"71.4%",y2:"93.0%",y3:"98.7%",y4:"99.7%",y5:"99.9%"}
-};
-
-const riskDILATESS_LGE = {
-  1:{y1:"<1.0%",y2:"1.2%",y3:"2.0%",y4:"2.7%",y5:"3.3%"},
-  2:{y1:"<1.0%",y2:"1.6%",y3:"2.7%",y4:"3.6%",y5:"4.4%"},
-  3:{y1:"1.0%",y2:"2.2%",y3:"3.6%",y4:"4.8%",y5:"6.0%"},
-  4:{y1:"1.4%",y2:"3.0%",y3:"4.9%",y4:"6.5%",y5:"8.0%"},
-  5:{y1:"1.9%",y2:"4.1%",y3:"6.6%",y4:"8.7%",y5:"10.7%"},
-  6:{y1:"2.6%",y2:"5.5%",y3:"8.8%",y4:"11.6%",y5:"14.2%"},
-  7:{y1:"3.5%",y2:"7.3%",y3:"11.7%",y4:"15.3%",y5:"18.7%"},
-  8:{y1:"4.7%",y2:"9.8%",y3:"15.5%",y4:"20.2%",y5:"24.4%"},
-  9:{y1:"6.3%",y2:"13.0%",y3:"20.5%",y4:"26.3%",y5:"31.6%"},
-  10:{y1:"8.5%",y2:"17.2%",y3:"26.7%",y4:"33.9%",y5:"40.2%"},
-  11:{y1:"11.3%",y2:"22.6%",y3:"34.3%",y4:"42.9%",y5:"50.2%"},
-  12:{y1:"15.0%",y2:"29.3%",y3:"43.3%",y4:"53.2%",y5:"61.1%"},
-  13:{y1:"19.7%",y2:"37.5%",y3:"53.7%",y4:"64.3%",y5:"72.2%"},
-  14:{y1:"25.8%",y2:"47.1%",y3:"64.8%",y4:"75.2%",y5:"82.3%"},
-  15:{y1:"33.2%",y2:"57.8%",y3:"75.7%",y4:"84.9%",y5:"90.4%"},
-  16:{y1:"42.1%",y2:"68.9%",y3:"85.3%",y4:"92.3%",y5:"95.8%"},
-  17:{y1:"52.3%",y2:"79.5%",y3:"92.6%",y4:"96.9%",y5:"98.7%"},
-  18:{y1:"63.4%",y2:"88.3%",y3:"97.0%",y4:"99.1%",y5:"99.7%"},
-  19:{y1:"74.3%",y2:"94.5%",y3:"99.2%",y4:"99.8%",y5:"100.0%"}
-};
-
-function getTier(score, isLGE) {
-  if (isLGE) {
-    if (score >= 14) return { text: "Very-High Risk", style: "background:var(--vh-bg); color:var(--vh-fg)" };
-    if (score >= 11) return { text: "High Risk", style: "background:var(--high-bg); color:var(--high-fg)" };
-    if (score >= 7)  return { text: "Intermediate Risk", style: "background:var(--int-bg); color:var(--int-fg)" };
-    return { text: "Low Risk", style: "background:var(--low-bg); color:var(--low-fg)" };
-  } else {
-    if (score >= 13) return { text: "Very-High Risk", style: "background:var(--vh-bg); color:var(--vh-fg)" };
-    if (score >= 10) return { text: "High Risk", style: "background:var(--high-bg); color:var(--high-fg)" };
-    if (score >= 6)  return { text: "Intermediate Risk", style: "background:var(--int-bg); color:var(--int-fg)" };
-    return { text: "Low Risk", style: "background:var(--low-bg); color:var(--low-fg)" };
+<!-- The exporter replaces only this JSON block. It contains model parameters, never patient records. -->
+<script type="application/json" id="model-data">{"schema":"dilatess-primary-v1","horizons_months":[12,24,36,48,60],"created_utc":"2026-09-25 17:36:32 UTC","source_bundle_md5":["204363b4af4327636dd26b0e9b905341","15bc8a3fb620596b78ea7c2a0e3af118"],"models":{"dilatess":{"name":"DILATESS","fits":[{"beta":{"Age_dev_10":0.335334715958067,"SBP_cen_10":-0.0903200323586506,"logbnp_cen":0.880215567388561,"SBP_logbnp_int":-0.269578069501086,"HCT_cen_10":-0.333933152247916,"AF_cen":0.2793648064888,"Bblocker_cen":-0.591716246306558,"Digitalis_cen":0.540875220636448,"LVEDD_cen_10":0.277815498159277,"BB_log_time":0.447177057890489},"h_bb_yes":[0.011284613587347,0.026230443631841,0.045427253540947,0.06196185770858,0.0776403701146526],"h_bb_no":[0.032735613144147,0.0559013266498321,0.0786604367694772,0.0958423388170654,0.110519623205574]},{"beta":{"Age_dev_10":0.349336730317734,"SBP_cen_10":-0.066489449305434,"logbnp_cen":0.76765341331117,"SBP_logbnp_int":-0.309969053429391,"HCT_cen_10":-0.323537036607342,"AF_cen":0.320078775439056,"Bblocker_cen":-0.56354249470812,"Digitalis_cen":0.560721717645447,"LVEDD_cen_10":0.276702925718782,"BB_log_time":0.446580064740055},"h_bb_yes":[0.0111174520362646,0.0257497242353092,0.0445197773193154,0.0606622161684789,0.0758443412293355],"h_bb_no":[0.031400771420716,0.0534552114350977,0.0751032949513176,0.0914254658456902,0.105256476045314]},{"beta":{"Age_dev_10":0.325234165870898,"SBP_cen_10":-0.0786461572661511,"logbnp_cen":0.924605526312964,"SBP_logbnp_int":-0.266318640710849,"HCT_cen_10":-0.327865759884551,"AF_cen":0.314541236526192,"Bblocker_cen":-0.584014804801612,"Digitalis_cen":0.507540371601079,"LVEDD_cen_10":0.261260008703966,"BB_log_time":0.412222293642555},"h_bb_yes":[0.0115873370730816,0.0268496164344545,0.0465241373031959,0.063401622871304,0.0792958841498586],"h_bb_no":[0.0321466169904124,0.0558961304372549,0.0798146322842889,0.0979892617734029,0.11353347914914]},{"beta":{"Age_dev_10":0.330105092907139,"SBP_cen_10":-0.0815747139368601,"logbnp_cen":0.900810100773179,"SBP_logbnp_int":-0.248510046405327,"HCT_cen_10":-0.297892049755025,"AF_cen":0.33237392626156,"Bblocker_cen":-0.582229259128169,"Digitalis_cen":0.491345498513928,"LVEDD_cen_10":0.290817642137826,"BB_log_time":0.4259155517765},"h_bb_yes":[0.0113744082519347,0.0262700854745647,0.0453382775883198,0.0618046119315492,0.0771737559564186],"h_bb_no":[0.031938974181321,0.0549734762712698,0.0778190322952377,0.0952204240297836,0.109926644447158]},{"beta":{"Age_dev_10":0.347111028485799,"SBP_cen_10":-0.0807206250091365,"logbnp_cen":0.857064519846291,"SBP_logbnp_int":-0.295576553468506,"HCT_cen_10":-0.304645243881621,"AF_cen":0.299403480092822,"Bblocker_cen":-0.559025823407992,"Digitalis_cen":0.525590843904714,"LVEDD_cen_10":0.282411494263752,"BB_log_time":0.445630712508021},"h_bb_yes":[0.0109056620644988,0.0254561950557918,0.044414839376363,0.0606881727847263,0.0759793704882038],"h_bb_no":[0.0305518578723633,0.0523865300880003,0.0741702466484592,0.0905701482380286,0.104457639769028]},{"beta":{"Age_dev_10":0.344899562225582,"SBP_cen_10":-0.0742573337507727,"logbnp_cen":0.892973836699167,"SBP_logbnp_int":-0.270930564271658,"HCT_cen_10":-0.357215411331763,"AF_cen":0.321489520830337,"Bblocker_cen":-0.55997734962424,"Digitalis_cen":0.5374117439322,"LVEDD_cen_10":0.29441048959618,"BB_log_time":0.439434088600733},"h_bb_yes":[0.0108802455810801,0.025318503778802,0.0440312922851311,0.0601235608828248,0.0752559526782769],"h_bb_no":[0.0303248219674898,0.0520582984467661,0.0737040344710573,0.0900616159411389,0.10394340333971]},{"beta":{"Age_dev_10":0.315847730858183,"SBP_cen_10":-0.0992559223850386,"logbnp_cen":0.844908380742045,"SBP_logbnp_int":-0.265496457043264,"HCT_cen_10":-0.384911840918618,"AF_cen":0.295674799294866,"Bblocker_cen":-0.544627469183365,"Digitalis_cen":0.560561770319101,"LVEDD_cen_10":0.247036505325236,"BB_log_time":0.462249816943864},"h_bb_yes":[0.0121919428896068,0.028383082290919,0.0491312280536749,0.0669765135694041,0.0839661914881809],"h_bb_no":[0.0343097206086473,0.058131160864225,0.081268457001171,0.0986349512662519,0.113475229723216]},{"beta":{"Age_dev_10":0.311135096241353,"SBP_cen_10":-0.0576210354952965,"logbnp_cen":0.891563207433343,"SBP_logbnp_int":-0.276470501665549,"HCT_cen_10":-0.344622961244049,"AF_cen":0.34846569678483,"Bblocker_cen":-0.620290518702266,"Digitalis_cen":0.482925151448801,"LVEDD_cen_10":0.269103831650721,"BB_log_time":0.375909193475824},"h_bb_yes":[0.0122089204647033,0.0279136071858,0.047961541158378,0.0653888614475117,0.0817573333227285],"h_bb_no":[0.0337641093623723,0.0594253031791373,0.0855741336962535,0.105925878205059,0.123435883436214]},{"beta":{"Age_dev_10":0.337424127753302,"SBP_cen_10":-0.0906607641047593,"logbnp_cen":0.869581774434554,"SBP_logbnp_int":-0.272000150224303,"HCT_cen_10":-0.303320364963552,"AF_cen":0.30341681562228,"Bblocker_cen":-0.589664030564011,"Digitalis_cen":0.540063873550368,"LVEDD_cen_10":0.249170642633212,"BB_log_time":0.456088899922151},"h_bb_yes":[0.0112737439439753,0.0261862066334246,0.0453746773164665,0.0617769378442841,0.077260393655798],"h_bb_no":[0.0329822028664918,0.0559776014090034,0.0784951052407385,0.0953209076253842,0.109598340980722]},{"beta":{"Age_dev_10":0.334408628372993,"SBP_cen_10":-0.082752500926443,"logbnp_cen":0.786361513690834,"SBP_logbnp_int":-0.288780457310001,"HCT_cen_10":-0.288376649684268,"AF_cen":0.329585613757925,"Bblocker_cen":-0.594339034604625,"Digitalis_cen":0.505458422406092,"LVEDD_cen_10":0.279915082118379,"BB_log_time":0.456848352168446},"h_bb_yes":[0.0114629126596985,0.0265388199252556,0.0459207694045175,0.0626354345669196,0.0784343075437052],"h_bb_no":[0.0337427195509864,0.0570950299379715,0.0799237305554549,0.0971320064861991,0.111752689969643]},{"beta":{"Age_dev_10":0.342302112301015,"SBP_cen_10":-0.0622498439998992,"logbnp_cen":0.864703935407595,"SBP_logbnp_int":-0.268020299340118,"HCT_cen_10":-0.348583240851793,"AF_cen":0.299576211056245,"Bblocker_cen":-0.556146519630113,"Digitalis_cen":0.551049076669025,"LVEDD_cen_10":0.26544182386939,"BB_log_time":0.457096139830028},"h_bb_yes":[0.011607836072416,0.0269308448288988,0.0466791968417462,0.0637858352927463,0.079945677926977],"h_bb_no":[0.0328451954501891,0.055686241544939,0.0780709926717599,0.0950160614250215,0.109404910305007]},{"beta":{"Age_dev_10":0.324184805335298,"SBP_cen_10":-0.0829674017285981,"logbnp_cen":0.86169521406732,"SBP_logbnp_int":-0.24376521312472,"HCT_cen_10":-0.3436946034878,"AF_cen":0.324206194775931,"Bblocker_cen":-0.576121673561768,"Digitalis_cen":0.495022835648041,"LVEDD_cen_10":0.280017420954052,"BB_log_time":0.448966948455599},"h_bb_yes":[0.0120676537893316,0.0278627300908253,0.0479736445297748,0.0653223022911069,0.0816475487211724],"h_bb_no":[0.0346162451453815,0.0587070788095507,0.0821410515387622,0.0998512555503994,0.114859527459697]},{"beta":{"Age_dev_10":0.343623458465944,"SBP_cen_10":-0.0677209034908456,"logbnp_cen":0.838378444290663,"SBP_logbnp_int":-0.304573514415657,"HCT_cen_10":-0.309866354670688,"AF_cen":0.288760189617273,"Bblocker_cen":-0.518364609287461,"Digitalis_cen":0.560100995421643,"LVEDD_cen_10":0.271984433291527,"BB_log_time":0.466507052068069},"h_bb_yes":[0.0111860947554387,0.0260443280729824,0.0452788244691166,0.0619227362163814,0.0775715865887168],"h_bb_no":[0.0307751718101773,0.0520380427008889,0.0728438211489724,0.0885381384427398,0.101770707082042]},{"beta":{"Age_dev_10":0.328024059135506,"SBP_cen_10":-0.100022776222435,"logbnp_cen":0.688134177613851,"SBP_logbnp_int":-0.254424197245355,"HCT_cen_10":-0.338252814110213,"AF_cen":0.354226557913975,"Bblocker_cen":-0.543532884258897,"Digitalis_cen":0.538520659929329,"LVEDD_cen_10":0.290099808751363,"BB_log_time":0.477668644417289},"h_bb_yes":[0.0120232248026645,0.0278003554192174,0.0477793720559621,0.0649385031929122,0.0812443162701378],"h_bb_no":[0.034491879442319,0.0575605092313143,0.0794983493444865,0.0958616050166281,0.109771132222554]},{"beta":{"Age_dev_10":0.306124104350959,"SBP_cen_10":-0.0729434429112669,"logbnp_cen":0.873367822279353,"SBP_logbnp_int":-0.257725791179834,"HCT_cen_10":-0.385970479372875,"AF_cen":0.291535813237423,"Bblocker_cen":-0.613893729589794,"Digitalis_cen":0.565103148376471,"LVEDD_cen_10":0.235938565839145,"BB_log_time":0.429902778480905},"h_bb_yes":[0.0124966248005562,0.0287866116591795,0.0494774892994798,0.067274468148976,0.0839271733990617],"h_bb_no":[0.036416894595543,0.0623873344966992,0.087878902872251,0.107198683300027,0.12354942850356]},{"beta":{"Age_dev_10":0.326928218929453,"SBP_cen_10":-0.101663572935045,"logbnp_cen":0.912789625999624,"SBP_logbnp_int":-0.250348871291941,"HCT_cen_10":-0.342387503874185,"AF_cen":0.301903269220533,"Bblocker_cen":-0.578788112214619,"Digitalis_cen":0.505849263073275,"LVEDD_cen_10":0.284713826250869,"BB_log_time":0.454678356201051},"h_bb_yes":[0.0113975465110061,0.0265493591907784,0.0461616507998186,0.0630313133651354,0.0789964450525571],"h_bb_no":[0.0329164218748886,0.0560372260074942,0.0788281123654782,0.095974835664352,0.11056666032593]},{"beta":{"Age_dev_10":0.333980761329498,"SBP_cen_10":-0.0899659828142323,"logbnp_cen":0.881782377539014,"SBP_logbnp_int":-0.276946321699748,"HCT_cen_10":-0.290039626108543,"AF_cen":0.297978788047546,"Bblocker_cen":-0.578353017932926,"Digitalis_cen":0.543435840356782,"LVEDD_cen_10":0.261073029985085,"BB_log_time":0.453644777456786},"h_bb_yes":[0.0109485292463189,0.0254540365029932,0.0440929057713557,0.0601714938407161,0.0753952962009554],"h_bb_no":[0.0315544311385911,0.0536921643561391,0.0753610634683286,0.0917178143017474,0.105646875634041]},{"beta":{"Age_dev_10":0.329261588981633,"SBP_cen_10":-0.081606768324925,"logbnp_cen":0.83344934799554,"SBP_logbnp_int":-0.309394246310583,"HCT_cen_10":-0.350587938739808,"AF_cen":0.287895119393968,"Bblocker_cen":-0.568007122614566,"Digitalis_cen":0.537047570664689,"LVEDD_cen_10":0.232020628948218,"BB_log_time":0.449881360157442},"h_bb_yes":[0.0117243538011309,0.0273651764807253,0.0476857686714103,0.0652639866276689,0.081776694257685],"h_bb_no":[0.0332900314878944,0.0569394611022588,0.0804055684231452,0.0981864895330996,0.113224631540649]},{"beta":{"Age_dev_10":0.35215757053961,"SBP_cen_10":-0.110672639876753,"logbnp_cen":0.728077278900768,"SBP_logbnp_int":-0.249148138893567,"HCT_cen_10":-0.329884205324053,"AF_cen":0.323683920343612,"Bblocker_cen":-0.611312562596982,"Digitalis_cen":0.515835501688516,"LVEDD_cen_10":0.281899026471947,"BB_log_time":0.462707587338951},"h_bb_yes":[0.0115792492954758,0.0267613072013602,0.046042809446694,0.0627043049581417,0.0786418585963513],"h_bb_no":[0.0349156125627881,0.0587909899176637,0.0817668212912007,0.0990863280764278,0.113958236567545]},{"beta":{"Age_dev_10":0.320288054936405,"SBP_cen_10":-0.0743274719840744,"logbnp_cen":0.842754142025335,"SBP_logbnp_int":-0.283142521919052,"HCT_cen_10":-0.353337553671164,"AF_cen":0.287762047111214,"Bblocker_cen":-0.628165727574284,"Digitalis_cen":0.524903929265959,"LVEDD_cen_10":0.246123365020068,"BB_log_time":0.407651223569737},"h_bb_yes":[0.0122541592086858,0.0282000403680791,0.0486852944194135,0.0663385912568305,0.0829480052593689],"h_bb_no":[0.0353310244149949,0.0613101730426363,0.0874468568524015,0.107427555698781,0.124519414606318]}]},"dilatess_lge":{"name":"DILATESS-LGE","fits":[{"beta":{"Age_dev_10":0.325281420194933,"SBP_cen_10":-0.0578672780384716,"logbnp_cen":0.834780455055132,"SBP_logbnp_int":-0.298260565174194,"HCT_cen_10":-0.295363995758767,"AF_cen":0.259163904308549,"Bblocker_cen":-0.523447873636707,"Digitalis_cen":0.560229630670358,"LVEDD_cen_10":0.275669661195488,"LGE_cen":0.510555862171808,"BB_log_time":0.435050585801793},"h_bb_yes":[0.00875781516282477,0.020341001223658,0.0356785974452518,0.049086829154157,0.0620736660690043],"h_bb_no":[0.0234910059707718,0.040319225068812,0.0574919816213976,0.0706997602767852,0.0822568560866906]},{"beta":{"Age_dev_10":0.322079254996784,"SBP_cen_10":-0.0805274639562349,"logbnp_cen":0.862477902464753,"SBP_logbnp_int":-0.264972193997926,"HCT_cen_10":-0.344696242540736,"AF_cen":0.263113652611252,"Bblocker_cen":-0.55778953436187,"Digitalis_cen":0.597430884918628,"LVEDD_cen_10":0.2218145615234,"LGE_cen":0.554400517962721,"BB_log_time":0.421167676492944},"h_bb_yes":[0.00874215733365117,0.0202073375974027,0.0353576657086359,0.0486862391893002,0.0616774533258624],"h_bb_no":[0.0239294826384308,0.0412520173691362,0.0590386008448545,0.0728596907558436,0.0850712611037166]},{"beta":{"Age_dev_10":0.302987358248757,"SBP_cen_10":-0.0628095898063409,"logbnp_cen":0.869195127337085,"SBP_logbnp_int":-0.272586707832898,"HCT_cen_10":-0.287657710568296,"AF_cen":0.282850563115681,"Bblocker_cen":-0.583913500256075,"Digitalis_cen":0.539906757152823,"LVEDD_cen_10":0.244163615105807,"LGE_cen":0.613474450617293,"BB_log_time":0.397190452813288},"h_bb_yes":[0.00863472529685882,0.0198392681676091,0.0347971444605746,0.0480569291593526,0.0611578794573351],"h_bb_no":[0.0236409583803384,0.0411574544159959,0.0595899558926194,0.0741273374708713,0.0872206649737737]},{"beta":{"Age_dev_10":0.308856761631743,"SBP_cen_10":-0.063396467281656,"logbnp_cen":0.886216290090737,"SBP_logbnp_int":-0.252545972421996,"HCT_cen_10":-0.345199314483243,"AF_cen":0.287038840286423,"Bblocker_cen":-0.56895331967273,"Digitalis_cen":0.592951359494264,"LVEDD_cen_10":0.228298290275112,"LGE_cen":0.584215290388368,"BB_log_time":0.395272081031665},"h_bb_yes":[0.00897795147413781,0.0206614978658576,0.0360283378817473,0.0495689222620989,0.0626924489294598],"h_bb_no":[0.0241537097923962,0.0421640940640352,0.0608560753337724,0.075517240053615,0.0884764615359055]},{"beta":{"Age_dev_10":0.328658972388779,"SBP_cen_10":-0.0747586642855538,"logbnp_cen":0.77227932120967,"SBP_logbnp_int":-0.294226571310742,"HCT_cen_10":-0.386445078860266,"AF_cen":0.269559163939366,"Bblocker_cen":-0.557393991628667,"Digitalis_cen":0.591210186630787,"LVEDD_cen_10":0.238495165022816,"LGE_cen":0.568927270155795,"BB_log_time":0.429752076718413},"h_bb_yes":[0.00878260047021719,0.0203817827693052,0.0357504134246569,0.0493681997585479,0.0626425225256064],"h_bb_no":[0.0242430488282003,0.0417093888463472,0.0595999951560916,0.0735657510795762,0.0858819708265772]},{"beta":{"Age_dev_10":0.287957386501939,"SBP_cen_10":-0.0682640420173342,"logbnp_cen":0.806341176690908,"SBP_logbnp_int":-0.284833993554721,"HCT_cen_10":-0.402105773627022,"AF_cen":0.246722109110576,"Bblocker_cen":-0.573799777930371,"Digitalis_cen":0.614287763582426,"LVEDD_cen_10":0.165201381393064,"LGE_cen":0.58735326133839,"BB_log_time":0.428903089251525},"h_bb_yes":[0.00989711102748044,0.0228485252815831,0.0399172555092275,0.0548275097836384,0.0693994759397925],"h_bb_no":[0.0277538385570664,0.0475885522937147,0.0678036323652565,0.0833653662930105,0.0971267377386401]},{"beta":{"Age_dev_10":0.320137289236113,"SBP_cen_10":-0.0809974079228423,"logbnp_cen":0.814499333043678,"SBP_logbnp_int":-0.284792522289655,"HCT_cen_10":-0.308723519299185,"AF_cen":0.27910369462106,"Bblocker_cen":-0.554845532049844,"Digitalis_cen":0.608272255259022,"LVEDD_cen_10":0.240121596950339,"LGE_cen":0.592400775254633,"BB_log_time":0.412280977060425},"h_bb_yes":[0.0082604348624175,0.019159775273581,0.033589834307006,0.0462125571124291,0.0585055098587212],"h_bb_no":[0.0223346243195966,0.0387979908417507,0.0558341834103045,0.0690295846762132,0.0807019679060551]},{"beta":{"Age_dev_10":0.320313374910155,"SBP_cen_10":-0.0681933304532239,"logbnp_cen":0.834177198945368,"SBP_logbnp_int":-0.289755848848486,"HCT_cen_10":-0.347968122909724,"AF_cen":0.284980403201834,"Bblocker_cen":-0.555908931022856,"Digitalis_cen":0.541231793385838,"LVEDD_cen_10":0.240558461547772,"LGE_cen":0.530782921656667,"BB_log_time":0.426807465864229},"h_bb_yes":[0.00909141225468654,0.0211403506334288,0.0371145018288465,0.0510344973193412,0.0645919873747744],"h_bb_no":[0.0249616500558774,0.0430960385231456,0.0617170856969612,0.0760262322731827,0.0886403949861684]},{"beta":{"Age_dev_10":0.32057823327601,"SBP_cen_10":-0.0702776891490407,"logbnp_cen":0.832894363729097,"SBP_logbnp_int":-0.296489300267818,"HCT_cen_10":-0.253132967702472,"AF_cen":0.258667462476089,"Bblocker_cen":-0.532392920510819,"Digitalis_cen":0.585647218099012,"LVEDD_cen_10":0.209072730278312,"LGE_cen":0.539847257286681,"BB_log_time":0.440706965934867},"h_bb_yes":[0.00884230798442332,0.0204111671381123,0.0358310146601021,0.0493751739150568,0.0625987258666708],"h_bb_no":[0.024157896502489,0.04108314427679,0.0584138777359216,0.0717792260368639,0.0835541423745153]},{"beta":{"Age_dev_10":0.31078085026817,"SBP_cen_10":-0.0793835108911271,"logbnp_cen":0.93233173869559,"SBP_logbnp_int":-0.25479432549984,"HCT_cen_10":-0.336683836239527,"AF_cen":0.268889446507489,"Bblocker_cen":-0.632059169570554,"Digitalis_cen":0.552753310874301,"LVEDD_cen_10":0.199617647895257,"LGE_cen":0.542358888205806,"BB_log_time":0.368576185765312},"h_bb_yes":[0.00913536809275985,0.0209799867073276,0.0367197017603728,0.0504812435600313,0.0638274740033111],"h_bb_no":[0.025422457662719,0.0450422113632753,0.0659536020886918,0.0823596131231544,0.0969578333445307]},{"beta":{"Age_dev_10":0.322442345099922,"SBP_cen_10":-0.0441534976841694,"logbnp_cen":0.76719621765061,"SBP_logbnp_int":-0.353902522315843,"HCT_cen_10":-0.307258802662743,"AF_cen":0.255928002236373,"Bblocker_cen":-0.583768104967585,"Digitalis_cen":0.619677437416249,"LVEDD_cen_10":0.243770220715934,"LGE_cen":0.585775144173855,"BB_log_time":0.407993000686358},"h_bb_yes":[0.0082864118008248,0.0192987184389669,0.0341181902836702,0.0471214452763244,0.0596917195848674],"h_bb_no":[0.0228869825050609,0.0400342831389856,0.0581148570041086,0.072181256916826,0.0845464418366679]},{"beta":{"Age_dev_10":0.331812530662183,"SBP_cen_10":-0.0705250654965527,"logbnp_cen":0.785663438683366,"SBP_logbnp_int":-0.299939727184207,"HCT_cen_10":-0.339114122517512,"AF_cen":0.285189347666977,"Bblocker_cen":-0.542634432870965,"Digitalis_cen":0.615642668526017,"LVEDD_cen_10":0.241156670276887,"LGE_cen":0.600141703106938,"BB_log_time":0.425925021008804},"h_bb_yes":[0.00818794529336507,0.0189966462295256,0.0334140092828233,0.0461627941289919,0.0586377794813913],"h_bb_no":[0.0221716040717972,0.0382293251915537,0.0548251842990778,0.0677693299871042,0.07923861657062]},{"beta":{"Age_dev_10":0.302616117207206,"SBP_cen_10":-0.0705747122939074,"logbnp_cen":0.948152936967868,"SBP_logbnp_int":-0.273394512206202,"HCT_cen_10":-0.337754529378676,"AF_cen":0.263446355040997,"Bblocker_cen":-0.551470447961278,"Digitalis_cen":0.572906129942501,"LVEDD_cen_10":0.212425266350038,"LGE_cen":0.599544695830239,"BB_log_time":0.416783884194226},"h_bb_yes":[0.00866309300272297,0.0201084491970156,0.0354116992847153,0.0487227748457434,0.0616577722582146],"h_bb_no":[0.0234342766490561,0.0406391843130659,0.0585679303283514,0.0723616333357562,0.0845223686416155]},{"beta":{"Age_dev_10":0.306399278694617,"SBP_cen_10":-0.0800573162038812,"logbnp_cen":0.864564973245113,"SBP_logbnp_int":-0.271572559193192,"HCT_cen_10":-0.315580448071024,"AF_cen":0.273838525996293,"Bblocker_cen":-0.57910754518956,"Digitalis_cen":0.562848430932833,"LVEDD_cen_10":0.224082296283994,"LGE_cen":0.545905573477112,"BB_log_time":0.42833703773473},"h_bb_yes":[0.00898495460307894,0.0208253862634066,0.0366681849582855,0.050559143309994,0.0640096030879435],"h_bb_no":[0.0253130702045669,0.043540100884292,0.0624103731656857,0.0769973704335134,0.0897777529063493]},{"beta":{"Age_dev_10":0.309971102337731,"SBP_cen_10":-0.0592570192342785,"logbnp_cen":0.90593254853348,"SBP_logbnp_int":-0.273718903476404,"HCT_cen_10":-0.342607115605687,"AF_cen":0.297063333130779,"Bblocker_cen":-0.542179998339209,"Digitalis_cen":0.529546287025165,"LVEDD_cen_10":0.265304419992248,"LGE_cen":0.567097723282427,"BB_log_time":0.413961913031061},"h_bb_yes":[0.00869906624210146,0.0201640710836873,0.0354202258521744,0.0487421695016054,0.0616889398172406],"h_bb_no":[0.0232133498187189,0.0403059424598806,0.0580601702694405,0.0717835966955641,0.083892799682164]},{"beta":{"Age_dev_10":0.302914557032845,"SBP_cen_10":-0.0676904040498319,"logbnp_cen":0.873516625849808,"SBP_logbnp_int":-0.285136491224252,"HCT_cen_10":-0.380468235365988,"AF_cen":0.274979999821649,"Bblocker_cen":-0.58494641642081,"Digitalis_cen":0.548004824789422,"LVEDD_cen_10":0.213894637024842,"LGE_cen":0.559863151480558,"BB_log_time":0.40181925009379},"h_bb_yes":[0.00925855158551872,0.0214603861206494,0.0378157516118231,0.052085545951851,0.0660221195548185],"h_bb_no":[0.0254632614100888,0.0445251536865159,0.0646175030607157,0.0801917317881592,0.0940413167260422]},{"beta":{"Age_dev_10":0.324135538217266,"SBP_cen_10":-0.0530826393825525,"logbnp_cen":0.859198313873815,"SBP_logbnp_int":-0.295074216559254,"HCT_cen_10":-0.363297351239893,"AF_cen":0.277190144679353,"Bblocker_cen":-0.550511292264342,"Digitalis_cen":0.583481439403852,"LVEDD_cen_10":0.265451791898606,"LGE_cen":0.559654501375206,"BB_log_time":0.421402694921187},"h_bb_yes":[0.00856785072603154,0.0199373143919383,0.0350269717808652,0.0482635077252357,0.0611059511103301],"h_bb_no":[0.0232737672657884,0.0403237003251736,0.0579063600361232,0.0715291683573358,0.0835093465227352]},{"beta":{"Age_dev_10":0.320635548787254,"SBP_cen_10":-0.0825954101992897,"logbnp_cen":0.764374239929934,"SBP_logbnp_int":-0.288073890449028,"HCT_cen_10":-0.291115499985116,"AF_cen":0.27855600924328,"Bblocker_cen":-0.57730004930398,"Digitalis_cen":0.60101246478189,"LVEDD_cen_10":0.218994043316662,"LGE_cen":0.579550988295538,"BB_log_time":0.399635299686808},"h_bb_yes":[0.00873694637608379,0.0201249878453587,0.0352115948565974,0.0484780920459902,0.0614269912514543],"h_bb_no":[0.0238306153155923,0.0415021653315887,0.0599332660513809,0.0743396100204492,0.0871506112177968]},{"beta":{"Age_dev_10":0.301308310930169,"SBP_cen_10":-0.0750732159135588,"logbnp_cen":0.869344647899669,"SBP_logbnp_int":-0.296915325036876,"HCT_cen_10":-0.333993289480798,"AF_cen":0.237833094818838,"Bblocker_cen":-0.581723220659645,"Digitalis_cen":0.575923107235329,"LVEDD_cen_10":0.232009842139105,"LGE_cen":0.584084248077218,"BB_log_time":0.41355341713572},"h_bb_yes":[0.00869161256738218,0.0202080555937292,0.0357067369313659,0.0493540513019388,0.0626103480306615],"h_bb_no":[0.0241173670451471,0.0419772652465496,0.0607465774015393,0.0753779949841065,0.0882849235164538]},{"beta":{"Age_dev_10":0.315450999242422,"SBP_cen_10":-0.0562487340093936,"logbnp_cen":0.899784314278989,"SBP_logbnp_int":-0.290665679344841,"HCT_cen_10":-0.309542848264858,"AF_cen":0.24258221357838,"Bblocker_cen":-0.600936836263315,"Digitalis_cen":0.580041343564994,"LVEDD_cen_10":0.225930089835481,"LGE_cen":0.585325132038664,"BB_log_time":0.359703759757688},"h_bb_yes":[0.00866992108500271,0.0199041625647684,0.0349359377108066,0.0480766655346552,0.0607825806102381],"h_bb_no":[0.0231645581374463,0.0412566918829888,0.0607779205257798,0.0761307875628197,0.0897811227152472]}]}},"verification":[{"patient":{"age":40,"hct":40,"lvedd":60,"sbp":120,"bnp":1000,"af":0,"bb_on":0,"dig":0,"lge":"na"},"risks":[0.0325109634765994,0.0548564897097263,0.076357631459338,0.0922947086499943,0.105633112515796]},{"patient":{"age":57,"hct":34,"lvedd":73,"sbp":93,"bnp":4200,"af":1,"bb_on":0,"dig":1,"lge":"na"},"risks":[0.541772307226943,0.735991101270968,0.846569415977815,0.898191615009804,0.928151899883272]},{"patient":{"age":40,"hct":40,"lvedd":60,"sbp":120,"bnp":1000,"af":0,"bb_on":1,"dig":0,"lge":"na"},"risks":[0.0115117399461518,0.0264752553194542,0.0453625937733139,0.0613440363922787,0.0761738848069886]},{"patient":{"age":57,"hct":34,"lvedd":73,"sbp":93,"bnp":4200,"af":1,"bb_on":1,"dig":1,"lge":"na"},"risks":[0.239301894405124,0.469461731250473,0.665989648079592,0.77578375812579,0.846021216601651]},{"patient":{"age":40,"hct":40,"lvedd":60,"sbp":120,"bnp":1000,"af":0,"bb_on":0,"dig":0,"lge":0},"risks":[0.0237602757138065,0.0408664282485561,0.0583372283829358,0.0716920955646104,0.0833417211598431]},{"patient":{"age":57,"hct":34,"lvedd":73,"sbp":93,"bnp":4200,"af":1,"bb_on":0,"dig":1,"lge":0},"risks":[0.405733539071462,0.594555783839766,0.727494301767699,0.799832974692109,0.847589636868789]},{"patient":{"age":40,"hct":40,"lvedd":60,"sbp":120,"bnp":1000,"af":0,"bb_on":1,"dig":0,"lge":0},"risks":[0.00875479460653044,0.0201439381932605,0.0350940720317665,0.0480201023615955,0.06043392177681]},{"patient":{"age":57,"hct":34,"lvedd":73,"sbp":93,"bnp":4200,"af":1,"bb_on":1,"dig":1,"lge":0},"risks":[0.173374581485214,0.356358322416394,0.5385470698563,0.655326442884818,0.740504263827394]},{"patient":{"age":40,"hct":40,"lvedd":60,"sbp":120,"bnp":1000,"af":0,"bb_on":0,"dig":0,"lge":1},"risks":[0.0416100919906639,0.0710942991481453,0.100794733471772,0.12321530523465,0.142572148884836]},{"patient":{"age":57,"hct":34,"lvedd":73,"sbp":93,"bnp":4200,"af":1,"bb_on":0,"dig":1,"lge":1},"risks":[0.601302750956041,0.797054003902893,0.899334674192761,0.941559366243315,0.963834053951249]},{"patient":{"age":40,"hct":40,"lvedd":60,"sbp":120,"bnp":1000,"af":0,"bb_on":1,"dig":0,"lge":1},"risks":[0.0154219621908463,0.035327482313706,0.0611887626756137,0.08330293427327,0.104325532038543]},{"patient":{"age":57,"hct":34,"lvedd":73,"sbp":93,"bnp":4200,"af":1,"bb_on":1,"dig":1,"lge":1},"risks":[0.285736776911145,0.540944879048185,0.744965565950119,0.847647045417812,0.907687517418506]}]}</script>
+<script id="calculator-code">
+"use strict";
+const DILATESS = (() => {
+  const HORIZONS = [12, 24, 36, 48, 60];
+  const TERMS = ["Age_dev_10", "SBP_cen_10", "logbnp_cen", "SBP_logbnp_int", "HCT_cen_10", "AF_cen", "Digitalis_cen", "LVEDD_cen_10"];
+  const numeric = x => typeof x === "number" && Number.isFinite(x);
+  function validatePatient(p) {
+    for (const name of ["age", "hct", "lvedd", "sbp", "bnp"]) {
+      if (!numeric(p[name]) || p[name] <= 0) throw new Error("Enter a positive number for every quantitative predictor.");
+    }
+    if (p.hct < 1 || p.hct > 100) throw new Error("Enter hematocrit as a percentage, for example 40 for 0.40 L/L.");
+    for (const name of ["af", "bb_on", "dig"]) if (![0, 1].includes(p[name])) throw new Error("Select each baseline clinical finding.");
+    if (!["na", 0, 1].includes(p.lge)) throw new Error("Select LGE status.");
   }
-}
-
-function parsePct(s) {
-  let n = parseFloat(String(s).replace('<', ''));
-  return isNaN(n) ? 0 : n;
-}
-
-/* --- Controller --- */
-function calculate() {
-  const age = parseFloat(document.getElementById('age').value) || 0;
-  const hct = parseFloat(document.getElementById('hct').value) || 0;
-  const lv  = parseFloat(document.getElementById('lvedvi').value) || 0;
-  const sbp = parseFloat(document.getElementById('sbp').value) || 0;
-  const bnp = parseFloat(document.getElementById('bnp').value) || 0;
-  const af  = parseInt(document.getElementById('af').value);
-  const bb  = parseInt(document.getElementById('bb_on').value);
-  const dig = parseInt(document.getElementById('dig').value);
-  const lgeStatus = document.getElementById('lge').value;
-
-  // Calculate individual points
-  const ptsAge = pointsAge(age);
-  const ptsHct = pointsHct(hct);
-  const ptsLv  = pointsLVEDVi(lv);
-  const ptsInt = pointsInteraction(sbp, bnp); 
-  const ptsAf  = (af === 1) ? 1 : 0;
-  const ptsBb  = (bb === 0) ? 1 : 0; 
-  const ptsDig = (dig === 1) ? 2 : 0;
-  const ptsLge = (lgeStatus === '1') ? 2 : 0;
-
-  // Populate Score Breakdown
-  document.getElementById('bd_age').innerText = '+' + ptsAge;
-  document.getElementById('bd_hct').innerText = '+' + ptsHct;
-  document.getElementById('bd_lvedvi').innerText = '+' + ptsLv;
-  document.getElementById('bd_joint').innerText = '+' + ptsInt;
-  document.getElementById('bd_af').innerText = '+' + ptsAf;
-  document.getElementById('bd_bb').innerText = '+' + ptsBb;
-  document.getElementById('bd_dig').innerText = '+' + ptsDig;
-
-  // Show/Hide LGE row in breakdown based on selection
-  const isLGEModel = (lgeStatus !== 'na');
-  const lgeRow = document.getElementById('row_lge');
-  if (isLGEModel) {
-    lgeRow.style.display = 'flex';
-    document.getElementById('bd_lge').innerText = '+' + ptsLge;
-  } else {
-    lgeRow.style.display = 'none';
+  function terms(p) {
+    validatePatient(p);
+    const sbp = (p.sbp - 120) / 10, nt = Math.log10(p.bnp) - 3;
+    return {Age_dev_10: Math.abs(p.age - 40) / 10, SBP_cen_10: sbp,
+      logbnp_cen: nt, SBP_logbnp_int: sbp * nt, HCT_cen_10: (p.hct / 100 - .40) / .10,
+      AF_cen: p.af, Digitalis_cen: p.dig, LVEDD_cen_10: (p.lvedd - 60) / 10,
+      LGE_cen: p.lge === "na" ? 0 : p.lge};
   }
-
-  // Calculate total score
-  let score = ptsAge + ptsHct + ptsLv + ptsInt + ptsAf + ptsBb + ptsDig;
-  if (isLGEModel) score += ptsLge;
-
-  const modelData = isLGEModel ? riskDILATESS_LGE : riskDILATESS;
-  const maxScore = isLGEModel ? 19 : 17;
-  const clampedScore = Math.max(1, Math.min(maxScore, score));
-  const results = modelData[clampedScore];
-
-  // Update UI Totals & Ranges
-  document.getElementById('totalRange').innerText = isLGEModel ? "(Range: 0–26)" : "(Range: 0–24)";
-  document.getElementById('activeModel').innerText = isLGEModel ? "Model: DILATESS-LGE" : "Model: DILATESS";
-  document.getElementById('totalScore').innerText = score;
-
-  const tier = getTier(score, isLGEModel);
-  const tierBadge = document.getElementById('riskTier');
-  tierBadge.innerText = tier.text;
-  tierBadge.style.cssText = tier.style;
-
-  for(let i=1; i<=5; i++) {
-    const valStr = results['y'+i];
-    document.getElementById('y'+i).innerText = valStr;
-    document.getElementById('bar'+i).style.width = parsePct(valStr) + '%';
+  function predict(data, p) {
+    const x = terms(p), key = p.lge === "na" ? "dilatess" : "dilatess_lge";
+    const model = data.models[key], names = key === "dilatess" ? TERMS : [...TERMS, "LGE_cen"];
+    const risks = HORIZONS.map((_, k) => model.fits.reduce((sum, fit) => {
+      const eta = names.reduce((v, term) => v + x[term] * fit.beta[term], 0);
+      // These cumulative hazards already integrate the baseline BB main effect
+      // and its time-varying effect. Do NOT add a BB term to eta again.
+      const H = (p.bb_on === 1 ? fit.h_bb_yes : fit.h_bb_no)[k];
+      const logH = H === 0 ? -Infinity : Math.log(H) + eta;
+      const risk = -Math.expm1(-Math.exp(logH));
+      if (!Number.isFinite(risk)) throw new Error("Inputs produce a non-finite prediction. Check their units.");
+      return sum + risk;
+    }, 0) / model.fits.length);
+    return {key, name: model.name, risks};
   }
-}
+  function validateData(data) {
+    if (!data || data.schema !== "dilatess-primary-v1" || JSON.stringify(data.horizons_months) !== JSON.stringify(HORIZONS)) throw new Error("Missing or incompatible model data.");
+    if (!data.models) throw new Error("Both primary models are required.");
+    for (const key of ["dilatess", "dilatess_lge"]) {
+      const model = data.models[key];
+      if (!model || !Array.isArray(model.fits) || model.fits.length < 2) throw new Error("Missing imputation-specific model fits.");
+      const names = [...TERMS, "Bblocker_cen", "BB_log_time", ...(key === "dilatess_lge" ? ["LGE_cen"] : [])];
+      for (const fit of model.fits) {
+        if (!fit.beta || Object.keys(fit.beta).length !== names.length || !names.every(t => numeric(fit.beta[t]))) throw new Error("Incorrect primary-model coefficients.");
+        for (const hz of [fit.h_bb_yes, fit.h_bb_no]) {
+          if (!Array.isArray(hz) || hz.length !== 5 || !hz.every((v, i) => numeric(v) && v >= 0 && (i === 0 || v >= hz[i-1]))) throw new Error("Invalid integrated reference hazards.");
+        }
+      }
+    }
+    if (!Array.isArray(data.verification) || data.verification.length < 4) throw new Error("Model verification values are missing.");
+    for (const test of data.verification) {
+      const actual = predict(data, test.patient).risks;
+      if (!Array.isArray(test.risks) || test.risks.length !== 5 || actual.some((v, i) => !numeric(test.risks[i]) || Math.abs(v - test.risks[i]) > 1e-10)) throw new Error("Calculator does not match the R prediction checks.");
+    }
+    return data;
+  }
+  function tier(r) {
+    if (r < .10) return {label:"Low <10%", bg:"--low-bg", fg:"--low-fg"};
+    if (r < .20) return {label:"Intermediate 10-20%", bg:"--int-bg", fg:"--int-fg"};
+    if (r < .40) return {label:"High 20-40%", bg:"--high-bg", fg:"--high-fg"};
+    return {label:"Very high ≥40%", bg:"--vh-bg", fg:"--vh-fg"};
+  }
+  return {predict, validateData, terms, tier};
+})();
 
-// Attach listeners
-const inputs = ['age', 'hct', 'lvedvi', 'sbp', 'bnp', 'af', 'bb_on', 'dig', 'lge'];
-inputs.forEach(id => {
-  document.getElementById(id).addEventListener('input', calculate);
-});
-
-// Run initially
-calculate();
+(() => {
+  const el = id => document.getElementById(id);
+  let data = null;
+  try {
+    const parsed = JSON.parse(el("model-data").textContent);
+    if (parsed !== null) { data = DILATESS.validateData(parsed); el("setupNote").hidden = true; }
+  } catch (e) { el("setupNote").textContent = "Calculator setup error: " + e.message; }
+  function clearResults() {
+    el("fiveYearRisk").textContent = "—"; el("riskTier").hidden = true;
+    for (let i=1; i<=5; i++) { el("y"+i).textContent = "—"; el("bar"+i).style.width = "0%"; }
+  }
+  function update() {
+    clearResults(); el("inputError").hidden = true;
+    el("patientSummary").replaceChildren();
+    const p = {};
+    for (const name of ["age", "hct", "lvedd", "sbp", "bnp", "af", "bb_on", "dig"]) p[name] = el(name).value.trim() === "" ? NaN : Number(el(name).value);
+    p.lge = el("lge").value === "na" ? "na" : Number(el("lge").value);
+    el("activeModel").textContent = p.lge === "na" ? "DILATESS" : "DILATESS-LGE";
+    try {
+      DILATESS.terms(p);
+      const summary = [["Age", p.age + " years"], ["Hematocrit", p.hct + "%"], ["LVEDD", p.lvedd + " mm"],
+        ["SBP", p.sbp + " mmHg"], ["NT-proBNP", p.bnp.toLocaleString() + " ng/L"],
+        ["Atrial flutter/fibrillation", p.af ? "Yes" : "No"], ["Baseline beta-blocker use", p.bb_on ? "Yes" : "No"],
+        ["Baseline digitalis use", p.dig ? "Yes" : "No"], ["LGE", p.lge === "na" ? "Not available" : p.lge ? "Present" : "Absent"]];
+      for (const [label, value] of summary) {
+        const row = document.createElement("div"), labelEl = document.createElement("span"), valueEl = document.createElement("span");
+        row.className = "bd-row"; valueEl.className = "bd-val"; labelEl.textContent = label; valueEl.textContent = value;
+        row.append(labelEl, valueEl); el("patientSummary").append(row);
+      }
+      if (!data) return;
+      const result = DILATESS.predict(data, p);
+      const pct = r => r > 0 && r < .0005 ? "<0.1%" : r < 1 && r > .9995 ? ">99.9%" : (100*r).toFixed(1) + "%";
+      result.risks.forEach((r, i) => { el("y"+(i+1)).textContent = pct(r); el("bar"+(i+1)).style.width = (100*r) + "%"; });
+      el("fiveYearRisk").textContent = pct(result.risks[4]);
+      const band = DILATESS.tier(result.risks[4]);
+      el("riskTier").hidden = false; el("riskTier").textContent = band.label;
+      el("riskTier").style.background = "var(" + band.bg + ")"; el("riskTier").style.color = "var(" + band.fg + ")";
+    } catch (e) { clearResults(); el("inputError").textContent = e.message; el("inputError").hidden = false; }
+  }
+  document.querySelectorAll("input, select").forEach(input => input.addEventListener("input", update));
+  update();
+})();
 </script>
-
-</body>
-</html>
+</body></html>
